@@ -1,5 +1,11 @@
 var express = require('express');
 var router = express.Router();
+/***
+
+psql -h "komodosigndev.czel2eb3sbyo.us-east-1.rds.amazonaws.com" -U "komodosigndev" -d "komodosigndwev"
+psql -h "komodosigndev.czel2eb3sbyo.us-east-1.rds.amazonaws.com" -U "komodosigndev" 
+
+****/
 
 /* GET users listing. */
 
