@@ -5,8 +5,9 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
-var signature = require('./routes/signature');
+var signature = require('./routes/signature'); 
 var documents = require('./routes/document');
+var flow = require('./routes/flow');
 
 var app = express();
 
@@ -23,6 +24,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/signature', signature);
+app.use('/flow', flow);
 app.use('/document', documents);
 
 // catch 404 and forward to error handler
