@@ -1,26 +1,28 @@
 var express = require('express');
 var router = express.Router();
 
-/* GET home page. */
-router.get('/:userid', function(req, res, next) {
+router.post('/add', function(req, res, next) {
+  /***
+  the route for adding a signature
+  
+  get the userid 
+  get the signature data
+  create a path for the signature to be stored
   
   
+  
+  
+  ***/ 
+    
   
   
   }); 
 
-router.post('/', function(req, res, next) {
-  let method = req.body.method
-  let userid = req.body.userid
-  let token = req.header.token
-  if(){
-    
-  }else if(){
-    
-  }else if(){
-    
-  }
-  
+router.get('/:userid', function(req, res, next) { 
+ /***
+ gets the one signature based on the user id
+ 
+ ***/ 
   
   
   });
