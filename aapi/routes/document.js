@@ -238,12 +238,13 @@ router.post('/upload', upload.single('file'),(req, res, next)=>{
 	const {"X-UserID":userid,"X-Token":token} = req.headers
 	// const {doc} = req.body
 	const doc = req.file;
-	if (!userid|| !token){
+	if (!user_code|| !token){
 		res.status(403).send({Error:"Not Authenicated",Status:"403"})	
 	}else if (!doc){
 		res.status(401).send({Error:"Document Not Recieved",Status:"401"})
 	}else{
-		query(`select exists (select 1 from [fromtable] where userid = $1 and token = $2)`,[userid,token]).then(results=>{
+		query(`select exists (select 1 from user 
+			join user on user.id = key.owner where user.user_code = $1 and key.token = $2)`,[user_code,token]).then(results=>{
 			// checking if user with asscoiated token exists or token is active???
 			const {exists} = results.rows[0]
 			if (exists){
