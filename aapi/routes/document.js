@@ -5,7 +5,22 @@ const { exec } = require('child_process');
 const fs = require('fs');
 const cheerio = require('cheerio');
 const fs = require('fs');
-// const stepTwo = require('./stepTwoInject.js')
+const pgPool = require('pg-pool');
+const pool = new pgPool({database:"ks"});
+pool.connect((err,client,done)=>{
+  err ? console.log("ERRRRRRRRR",err,client) : console.log("Connected")
+	})
+const query = (query,values=[])=>{ // queries data base with promise function
+  return new Promise((resolve,reject)=>{
+    pool.query({
+      text:query,
+      values: values
+    },(err,result)=>{
+      err ? reject(err) : resolve(result);
+    })
+  })
+	}
+
 const stepTwo = () => {
   return `$('body').on('click', '#done', function(){
     var completedHTML = $('html')[0].outerHTML;

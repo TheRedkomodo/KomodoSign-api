@@ -1,5 +1,87 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
+const pgPool = require('pg-pool');
+const pool = new pgPool({database:"ks"});
+pool.connect((err,client,done)=>{
+  err ? console.log("ERRRRRRRRR",err,client) : console.log("Connected")
+	})
+const query = (query,values=[])=>{ // queries data base with promise function
+  return new Promise((resolve,reject)=>{
+    pool.query({
+      text:query,
+      values: values
+    },(err,result)=>{
+      err ? reject(err) : resolve(result);
+    })
+  })
+	}
+const save = (data,userid,accountid)=>{
+
+	fs.mkdir(`../${accountid}/${userid}`,(error)=>{
+		// making directory
+		if (error){
+			if(error.code == "EEXIST"){
+				// if the directory already exist then try to save the file
+				fs.writeFile("./uploads/${accountid}/${userid}/${filename}.html",data,(err)=>{
+					if(err){
+						// if error try throw error
+						throw err;
+					}else{
+						// log file {filename} has been saved
+						console.log("File Has Been Saved, Saving Path To DB");
+						// save filepath into db
+						query(`insert into [table] values($1,$2,$3) returning id` ,[`./uploads/${accountid}/${userid}/${filename}.html`,`${accountid}`,`${userid}`]).then(data=>{
+							const {id} = data.rows[0];
+							if(id){
+								// if an id is returned then everything went okay
+								// logger
+								console.log("Saved File Path into DB");
+								// also return file path
+							}else{
+								// logger
+								// throw err
+								throw err;
+								console.log("Problem Saving FilePath to DB");
+							}
+						})
+					}
+				})
+			}else{
+				// if another error while trying to make dir 
+				throw err;
+			}
+		}else{
+			// if the wasnt an error while try to make dir , then try to save file
+			fs.writeFile("./uploads/${accountid}/${userid}/${filename}.html",data,(err)=>{
+					if(err){
+						// if error try throw error
+						throw err;
+					}else{
+						// log file {filename} has been saved
+						console.log("File Has Been Saved, Saving Path To DB");
+						// save filepath into db
+						query(`insert into [table] values($1,$2,$3) returning id` ,[`./uploads/${accountid}/${userid}/${filename}.html`,`${accountid}`,`${userid}`]).then(data=>{
+							const {id} = data.rows[0];
+							if(id){
+								// logger
+								// if an id is returned then everything went okay
+								console.log("Saved File Path into DB");
+								// also return file path
+							}else{
+								// logger
+								// throw err
+								throw err;
+								console.log("Problem Saving FilePath to DB");
+							}
+						})
+					}
+				})
+			}
+
+		}
+	})
+
+	}
 
 router.post('/', (req, res, next)=> {
 	//----- Saving Signature
