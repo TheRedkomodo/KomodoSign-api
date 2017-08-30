@@ -18,18 +18,16 @@ const query = (query,values=[])=>{ // queries data base with promise function
 const save = (data,userid,accountid)=>{
 
 	fs.mkdir(`../${accountid}/${userid}`,(error)=>{
-		// making directory
 		if (error){
+			// if the directory wasnt there
 			if(error.code == "EEXIST"){
-				// if the directory already exist then try to save the file
 				fs.writeFile("./uploads/${accountid}/${userid}/${filename}.html",data,(err)=>{
 					if(err){
-						// if error try throw error
 						throw err;
+						console.log(err);
 					}else{
 						// log file {filename} has been saved
 						console.log("File Has Been Saved, Saving Path To DB");
-						// save filepath into db
 						query(`insert into [table] values($1,$2,$3) returning id` ,[`./uploads/${accountid}/${userid}/${filename}.html`,`${accountid}`,`${userid}`]).then(data=>{
 							const {id} = data.rows[0];
 							if(id){
@@ -38,49 +36,49 @@ const save = (data,userid,accountid)=>{
 								console.log("Saved File Path into DB");
 								// also return file path
 							}else{
-								// logger
-								// throw err
 								throw err;
 								console.log("Problem Saving FilePath to DB");
 							}
+						}).catch(error=>{
+							console.log("Recieved an error ",error)
+							res,sendStatus(500)
 						})
 					}
 				})
-			}else{
-				// if another error while trying to make dir 
-				throw err;
 			}
-		}else{
+			else{
+				// if error code wasnt EEXIST
+				throw error
+			}
+		}
+		else {
 			// if the wasnt an error while try to make dir , then try to save file
 			fs.writeFile("./uploads/${accountid}/${userid}/${filename}.html",data,(err)=>{
-					if(err){
+				if(err){
 						// if error try throw error
 						throw err;
 					}else{
-						// log file {filename} has been saved
 						console.log("File Has Been Saved, Saving Path To DB");
 						// save filepath into db
 						query(`insert into [table] values($1,$2,$3) returning id` ,[`./uploads/${accountid}/${userid}/${filename}.html`,`${accountid}`,`${userid}`]).then(data=>{
-							const {id} = data.rows[0];
 							if(id){
 								// logger
 								// if an id is returned then everything went okay
 								console.log("Saved File Path into DB");
 								// also return file path
 							}else{
-								// logger
-								// throw err
 								throw err;
 								console.log("Problem Saving FilePath to DB");
 							}
+						}).catch(error=>{
+							console.log("Got an Error in Save ",error)
 						})
-					}
-				})
-			}
 
+					}
+			})
+			
 		}
 	})
-
 	}
 
 router.post('/', (req, res, next)=> {

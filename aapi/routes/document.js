@@ -4,7 +4,6 @@ const multer = require('multer');
 const { exec } = require('child_process');
 const fs = require('fs');
 const cheerio = require('cheerio');
-const fs = require('fs');
 const pgPool = require('pg-pool');
 const pool = new pgPool({database:"ks"});
 pool.connect((err,client,done)=>{
@@ -20,7 +19,6 @@ const query = (query,values=[])=>{ // queries data base with promise function
     })
   })
 	}
-
 const stepTwo = () => {
   return `$('body').on('click', '#done', function(){
     var completedHTML = $('html')[0].outerHTML;
@@ -89,7 +87,6 @@ const stepTwo = () => {
     })
   })`
 	};
-
 const stepOne = (htmlPath, folderName, res) => {
   console.log('initializing stepOne');
   const html = fs.readFileSync(`${htmlPath}`, 'utf8');
@@ -135,75 +132,6 @@ const stepOne = (htmlPath, folderName, res) => {
     res.send(`${__dirname}/${folderName}.html`)
   });
 	}; // end of stepOne
-
-const save = (data,userid,accountid)=>{
-
-	fs.mkdir(`../${accountid}/${userid}`,(error)=>{
-		// making directory
-		if (error){
-			if(error.code == "EEXIST"){
-				// if the directory already exist then try to save the file
-				fs.writeFile("./uploads/${accountid}/${userid}/${filename}.html",data,(err)=>{
-					if(err){
-						// if error try throw error
-						throw err;
-					}else{
-						// log file {filename} has been saved
-						console.log("File Has Been Saved, Saving Path To DB");
-						// save filepath into db
-						query(`insert into [table] values($1,$2,$3) returning id` ,[`./uploads/${accountid}/${userid}/${filename}.html`,`${accountid}`,`${userid}`]).then(data=>{
-							const {id} = data.rows[0];
-							if(id){
-								// if an id is returned then everything went okay
-								// logger
-								console.log("Saved File Path into DB");
-								// also return file path
-							}else{
-								// logger
-								// throw err
-								throw err;
-								console.log("Problem Saving FilePath to DB");
-							}
-						})
-					}
-				})
-			}else{
-				// if another error while trying to make dir 
-				throw err;
-			}
-		}else{
-			// if the wasnt an error while try to make dir , then try to save file
-			fs.writeFile("./uploads/${accountid}/${userid}/${filename}.html",data,(err)=>{
-					if(err){
-						// if error try throw error
-						throw err;
-					}else{
-						// log file {filename} has been saved
-						console.log("File Has Been Saved, Saving Path To DB");
-						// save filepath into db
-						query(`insert into [table] values($1,$2,$3) returning id` ,[`./uploads/${accountid}/${userid}/${filename}.html`,`${accountid}`,`${userid}`]).then(data=>{
-							const {id} = data.rows[0];
-							if(id){
-								// logger
-								// if an id is returned then everything went okay
-								console.log("Saved File Path into DB");
-								// also return file path
-							}else{
-								// logger
-								// throw err
-								throw err;
-								console.log("Problem Saving FilePath to DB");
-							}
-						})
-					}
-				})
-			}
-
-		}
-	})
-
-	}
-
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, 'uploads/')
@@ -212,11 +140,9 @@ const storage = multer.diskStorage({
         cb(null, file.originalname) // rename filename to original filename instead of alphanumeric
   }
 	});
-
 const upload = multer({
   storage: storage,
 	})
-
 const ksPDF2HTML = (pdfPath, res, pdfName) => {
   console.log(`Converting uploaded ${pdfName} to HTML file`);
   exec(`pdf2htmlEX --fit-width 612 --fit-height 792 --embed-css 0 --embed-javascript 0 --embed-image 0  --dest-dir ${pdfName}  uploads/${pdfPath}`, (err, stdout, stderr) => {
@@ -231,6 +157,71 @@ const ksPDF2HTML = (pdfPath, res, pdfName) => {
     return;
   })
 	}
+const save = (data,userid,accountid)=>{
+
+	fs.mkdir(`../${accountid}/${userid}`,(error)=>{
+		if (error){
+			// if the directory wasnt there
+			if(error.code == "EEXIST"){
+				fs.writeFile("./uploads/${accountid}/${userid}/${filename}.html",data,(err)=>{
+					if(err){
+						throw err;
+						console.log(err);
+					}else{
+						// log file {filename} has been saved
+						console.log("File Has Been Saved, Saving Path To DB");
+						query(`insert into [table] values($1,$2,$3) returning id` ,[`./uploads/${accountid}/${userid}/${filename}.html`,`${accountid}`,`${userid}`]).then(data=>{
+							const {id} = data.rows[0];
+							if(id){
+								// if an id is returned then everything went okay
+								// logger
+								console.log("Saved File Path into DB");
+								// also return file path
+							}else{
+								throw err;
+								console.log("Problem Saving FilePath to DB");
+							}
+						}).catch(error=>{
+							console.log("Recieved an error ",error)
+							res,sendStatus(500)
+						})
+					}
+				})
+			}
+			else{
+				// if error code wasnt EEXIST
+				throw error
+			}
+		}
+		else {
+			// if the wasnt an error while try to make dir , then try to save file
+			fs.writeFile("./uploads/${accountid}/${userid}/${filename}.html",data,(err)=>{
+				if(err){
+						// if error try throw error
+						throw err;
+					}else{
+						console.log("File Has Been Saved, Saving Path To DB");
+						// save filepath into db
+						query(`insert into [table] values($1,$2,$3) returning id` ,[`./uploads/${accountid}/${userid}/${filename}.html`,`${accountid}`,`${userid}`]).then(data=>{
+							if(id){
+								// logger
+								// if an id is returned then everything went okay
+								console.log("Saved File Path into DB");
+								// also return file path
+							}else{
+								throw err;
+								console.log("Problem Saving FilePath to DB");
+							}
+						}).catch(error=>{
+							console.log("Got an Error in Save ",error)
+						})
+
+					}
+			})
+			
+		}
+	})
+	}
 
 router.post('/upload', upload.single('file'),(req, res, next)=>{
 	//------ Saves The Document
@@ -243,8 +234,8 @@ router.post('/upload', upload.single('file'),(req, res, next)=>{
 	}else if (!doc){
 		res.status(401).send({Error:"Document Not Recieved",Status:"401"})
 	}else{
-		query(`select exists (select 1 from user 
-			join user on user.id = key.owner where user.user_code = $1 and key.token = $2)`,[user_code,token]).then(results=>{
+		query(`select exists (select 1 from ks_user 
+			join ks_user on ks_user.id = token.owner where ks_user.code = $1 and token.token = $2)`,[user_code,token]).then(results=>{
 			// checking if user with asscoiated token exists or token is active???
 			const {exists} = results.rows[0]
 			if (exists){
@@ -274,61 +265,74 @@ router.post('/upload', upload.single('file'),(req, res, next)=>{
 	});
 
 router.get('/:docid',(req,res,next)=>{
-	//------ Gets The Document
-	const {"X-UserID":userid,"X-Token":token} = req.headers
+	// no decimal points
+	let {"X-UserID":userid,"X-Token":token} = req.headers
+	userid = "qwewsdfvgskzdfgvkb";
+	token = "qwewsdfvgskzdfgvkb";
 	const {docid} = req.params
+	console.log(typeof(+docid))
+
 	if (!userid || !token){
 		res.status(403).send({Error:"Not Authenicated",Status:"403"})	
-	}else if (!docid){
+	}
+	else if (!docid){
 		res.status(404).send({Error:"Missing Param Document ID",Status:"404"})	
-	}else {
-		// begin to get the document
-		// but first check to make sure userid and token are valid
-		// if they are valid then get the userid and check access level
-		// if they can access this document then return the path
-		query(`with check_stop as (
-			select exists (select 1 from [fromtable] where userid = $1 and token = $2)
-			),is_valid as(
+	}
+	else {
+		if(typeof(+docid)=== "number"){
+			// vulnerabilty using + to check if ID
+			console.log(docid,token,userid)
+
+			query(`with check_stop as (
+			select exists (select 1 from ks_user 
+			join token on ks_user.id = token.owner where ks_user.code = $1 and token.token = $2)
+      ),is_valid as(
 			select exists,
-			case 
+			(case 
 				when exists = false
-					then Raise Exception 'UserID or Token is incorrect'
-				when exists =true
-					then select exists (select 1 from [fromtable] where userid = $1 and docid = $3)
-				end
-			from check_stop
-			)select exists, 
-			case 
-				when exists = false
-					then Raise Exception 'Cannot access document, UserID : $1'
+					then false
 				when exists = true
-					then select document_path from [fromtable] where docid = $3
-				end
-			from is_valid`,[userid,token,docid]).then(doc_path =>{
+                      then (select exists (select 1 from document where id = $3 and document = $3))
+				end) as checked
+			from check_stop
+			),get_doc as (
+				select exists, 
+			case 
+				when exists = false
+					then 'false'
+				when exists = true
+					then (select document_path from version where id = $3)
+				end as document_path
+			from is_valid
+			)select * from get_doc`,[userid,token,+docid]).then(doc_path =>{
 				console.log(doc_path)
-				const {doc_path: document_path} = doc_path.rows[0]
-				if(!document_path){
-					res.status(404).send({Error:"Error Getting Document",Status:"404"})	
+				const document_path = doc_path.rows[0];
+
+				if(document_path === 'false' || !document_path){
+					res.status(404).send({Error:"Error Getting Document",Status:"404"});
 						// log an error
-					}else{
+					}
+					else{
 						res.sendFile(document_path,{lastModified: false},(err)=>{
 							if (err){
-								// Throw Error(err)
 								throw err;
-								console.log(err)
+								console.log(err);
 							}else{
-								console.log(`file ${file} requested by user :${userid}`)
+								console.log(`file ${file} requested by user :${userid}`);
 								// log filesent was requested by userid userid
 							}
-						});
+						})
 					}
-				}).catch(error=>{
-					// log error 
-					res.status(500).send({Error:"We Encountered An Error While Getting This File Please Try Again Later",Status:"500"})	
-				})
+			}).catch(error=>{
+				console.log("Recived an error in docid",error);
+				res.status(500).send({Error:"We Encountered An Error While Getting This File Please Try Again Later",Status:"500"});
 			})
-		}
 
+		}else{
+			res.status(401).send({Error:"We Encountered An Error While Getting This File Please Try Again Later",Status:"401"});
+		}
+				}
+	
 
 	});
 
