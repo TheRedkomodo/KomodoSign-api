@@ -134,7 +134,7 @@ const stepOne = (htmlPath, folderName, res) => {
 	}; // end of stepOne
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads/')
+        cb(null, './uploads/')
     },
     filename: function (req, file, cb) {
         cb(null, file.originalname) // rename filename to original filename instead of alphanumeric
@@ -270,7 +270,6 @@ router.get('/:docid',(req,res,next)=>{
 	userid = "qwewsdfvgskzdfgvkb";
 	token = "qwewsdfvgskzdfgvkb";
 	const {docid} = req.params
-	console.log(typeof(+docid))
 
 	if (!userid || !token){
 		res.status(403).send({Error:"Not Authenicated",Status:"403"})	
@@ -280,7 +279,7 @@ router.get('/:docid',(req,res,next)=>{
 	}
 	else {
 		if(typeof(+docid)=== "number"){
-			// vulnerabilty using + to check if ID
+			// vulnerabilty using + could use boolean to check if ID
 			console.log(docid,token,userid)
 
 			query(`with check_stop as (
