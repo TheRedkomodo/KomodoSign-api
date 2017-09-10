@@ -5,6 +5,7 @@ let logger = require('morgan');
 let cookieParser = require('cookie-parser');
 let bodyParser = require('body-parser');
 let cors = require("cors");
+let helmet = require("helmet");
 
 let signature = require('./routes/signature'); 
 let documents = require('./routes/document');
@@ -19,6 +20,7 @@ let app = express();
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+app.use(helmet())
 app.use(cors());
 app.use(logger('dev'));
 app.use(bodyParser.json({limit:'50mb'}));

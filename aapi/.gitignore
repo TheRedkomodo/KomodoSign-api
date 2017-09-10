@@ -15,6 +15,8 @@ media
 # <django-project-name>/staticfiles/
 
 ### Node ###
+#Documents Folder
+documents/*.html
 # Logs
 logs
 npm-debug.log*
