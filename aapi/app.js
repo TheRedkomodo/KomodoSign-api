@@ -9,6 +9,7 @@ let cors = require("cors");
 let signature = require('./routes/signature'); 
 let documents = require('./routes/document');
 let send = require('./routes/send');
+let test = require('./routes/test');
 
 let app = express();
 
@@ -20,14 +21,16 @@ let app = express();
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(cors());
 app.use(logger('dev'));
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit:'50mb'}));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'));
+
 
 app.use('/esig', signature);
 app.use('/send', send);
 app.use('/doc', documents);
+app.use('/test',test);
 
 // catch 404 and forward to error handler
 // app.use(function(req, res, next) {
