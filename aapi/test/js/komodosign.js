@@ -26,6 +26,7 @@ interact('.signatures')
 })
 var convert = true;
 var bodyClickable = true;
+var existingLinkClicked = false;
 $('body').on('click', '#add', function(){
   convert = false;
 })
@@ -39,10 +40,19 @@ $('.pc').prepend(signature_container);
 
 // adds Recipient to placeholder
 var addRecipient = function(elementIdentifier, recipientName, recipientId) {
+  // remove past classes
+  recipients.forEach(function(recipient){
+    if ( $("." + elementIdentifier).hasClass(recipient.id) )  {
+      $("." + elementIdentifier).removeClass(recipient.id)
+    }
+  });
+
   var type = typeof elementIdentifier;
   console.log('typeof elementIdentifier: ', elementIdentifier + ' | ' +  type);
   $("." + elementIdentifier).text(recipientName.toString() + "'s signature")
   $("." + elementIdentifier).addClass(recipientId);
+
+  $("." + elementIdentifier).attr(onclick, 'function(){existingLinkClicked=true}');
 
   currentPopover = $("." + elementIdentifier);
   setTimeout(function(){convert = false; bodyClickable = false}, 500)
@@ -50,7 +60,7 @@ var addRecipient = function(elementIdentifier, recipientName, recipientId) {
 
 // prepends recipientDropdown to placeholder
 var prependRecipientDropdown = function($element, recipients) {
-  var dropdownBtn = '<button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Add Signee</button>'
+  var dropdownBtn = '<button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Choose Signee</button>'
 
   var dropdownMenu = '<div class="dropdown-menu" aria-labelledby="dropdownMenuButton">';
   console.log('$element: ',  $element.attr('class').split(" ")[2]);
@@ -76,7 +86,7 @@ var prependRecipientDropdown = function($element, recipients) {
   $("." + $element.attr('class').split(" ")[2]).popover({
     html: true,
     content: dropdown,
-    title:'MUFASA'
+    title:'Who should sign here?'
   });
 
   currentPopover.popover('show')
@@ -84,7 +94,7 @@ var prependRecipientDropdown = function($element, recipients) {
 
 
 var addPlaceholder = function(e) {
-  if (!convert && bodyClickable) {
+  if (!convert && bodyClickable && !$(e.target).hasClass('signatures')) {
     var $container = this;
     var sig = '<a tabindex="0" role="button" class="btn signatures signature' + count + '" style="position: absolute; padding:10px; background-color: rgba(1,1,1,0);" data-container="body" data-toggle="popover" data-placement="top">signature</a>'
     var $signature = $(sig);
